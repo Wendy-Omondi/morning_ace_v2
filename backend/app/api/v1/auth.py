@@ -16,7 +16,7 @@ async def signup(user: UserCreate, db: AsyncSession = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    new_user = User(email=user.email, hashed_password=hash_password(user.password))
+    new_user = User(email=user.email, hashed_password=hash_password(user.password),is_admin=user.is_admin)
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)

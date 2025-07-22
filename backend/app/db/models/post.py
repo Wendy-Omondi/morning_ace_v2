@@ -15,7 +15,7 @@ class Post(Base):
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
 
     author = relationship("app.db.models.user.User", back_populates="posts")
-    comments = relationship("app.db.models.comment.Comment", back_populates="post")
+    comments = relationship("app.db.models.comment.Comment", back_populates="post, ")
 
-    tags = relationship("app.db.models.tag.Tag", secondary=post_tags, back_populates="posts")
+    tags = relationship("app.db.models.tag.Tag", secondary=post_tags, back_populates="posts", )
     category = relationship("app.db.models.category.Category", back_populates="posts")

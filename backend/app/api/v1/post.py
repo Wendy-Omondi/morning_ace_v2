@@ -2,12 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import and_
+from sqlalchemy import or_, func
 from sqlalchemy.orm import selectinload
 from app.db.session import get_db
 
 from app.db.models.post import Post
 from app.db.models.user import User
+from app.db.models.tag import Tag
+from app.db.models.category import Category
 from app.schemas.post import PostCreate, PostOut, PostUpdate
 from app.services.auth import get_current_user
 from slugify import slugify
@@ -47,26 +49,38 @@ async def create_post(
     await db.refresh(new_post)
     return new_post
 
-@router.get("/", response_model=list[PostOut])
+
+@router.get("/")
 async def list_posts(
     db: AsyncSession = Depends(get_db),
-    tag: Optional[str] = Query(None),
-    category: Optional[str] = Query(None),
+    search: str = Query(None),
+    tag: str = Query(None),
+    category: str = Query(None),
+    skip: int = 0,
+    limit: int = 10,
 ):
-    query = select(Post).options(
-        selectinload(Post.tags),
-        selectinload(Post.category)
-    )
+    stmt = select(Post).distinct().join(Post.author).outerjoin(Post.tags).outerjoin(Post.category).order_by(Post.created_at.desc())
 
-    if category:
-        query = query.join(Post.category).where(Category.name.ilike(category))
+    if search:
+        stmt = stmt.where(
+            or_(
+                Post.title.ilike(f"%{search}%"),
+                Post.content.ilike(f"%{search}%")
+            )
+        )
 
-    if tag:
-        query = query.join(Post.tags).where(Tag.name.ilike(tag))
+    total_query = base_query.with_only_columns(func.count()).order_by(None)
+    total = (await db.execute(total_query)).scalar_one()
 
-    result = await db.execute(query)
-    posts = result.scalars().unique().all()
-    return [PostOut.from_orm_with_html(p) for p in posts]
+    paginated_query = base_query.offset(skip).limit(limit)
+    posts = (await db.execute(paginated_query)).scalars().all()
+
+    return {
+        "data": posts,
+        "total": total,
+        "skip": skip,
+        "limit": limit
+    }
 
 @router.get("/me", response_model=list[PostOut])
 async def get_my_posts(
