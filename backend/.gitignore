@@ -1,0 +1,27 @@
+# Common ignores
+*.log
+*.~
+*.pyc
+__pycache__/
+
+# Python virtualenvs
+venv/
+.venv/
+
+# dotenv files
+.env
+.env.*
+
+# Build output
+dist/
+build/
+
+# OS/Editor
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+*.pid
