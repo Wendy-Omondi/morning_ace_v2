@@ -2,15 +2,33 @@
 *.log
 *.~
 *.pyc
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
 __pycache__/
 
 # Python virtualenvs
 venv/
 .venv/
 
+# Docker
+**/__pycache__/
+docker-compose.override.yml
+
+# Alembic generated cache (optional)
+alembic/versions/__pycache__/
+
+# Test cache
+pytest_cache/
+.coverage
+
 # dotenv files
 .env
 .env.*
+.env.test
+.envrc
 
 # Build output
 dist/
